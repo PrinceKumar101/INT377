@@ -1,4 +1,4 @@
-# MERN Todo App L
+# MERN Todo App 
 
 A small MERN stack todo application.
 
