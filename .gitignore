@@ -1,0 +1,9 @@
+# Local env files
+backend/.env
+backend/node_modules/
+frontend/node_modules/
+frontend/.env
+k8s/secrets.yaml
+
+# OS files
+.DS_Store
