@@ -60,9 +60,9 @@ pipeline {
 
                 kubectl apply -f k8s/backend.yaml
                 kubectl apply -f k8s/frontend.yaml
+                kubectl apply -f %K8s secrect file%
 
-                kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
-                kubectl set image deployment/frontend-deployment frontend=%DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+                
               '''
             }
           }
