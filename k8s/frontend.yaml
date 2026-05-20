@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: frontend-config
 data:
-  VITE_API_URL: "http://localhost:30001/api"
+  VITE_API_URL: "http://localhost:5000/api"
   NODE_ENV: "production"
 
 ---
