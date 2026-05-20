@@ -28,23 +28,44 @@ pipeline {
             passwordVariable: "DOCKERHUB_PASS"
           )
         ]) {
-          sh '''
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+          script {
+            if (isUnix()) {
+              sh '''
+                echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
-            docker build -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG backend
-            docker build -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG frontend
+                docker build -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG backend
+                docker build -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG frontend
 
-            docker push $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
-            docker push $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
+                docker push $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
+                docker push $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
 
-            kubectl apply -f k8s/backend.yaml
-            kubectl apply -f k8s/frontend.yaml
+                kubectl apply -f k8s/backend.yaml
+                kubectl apply -f k8s/frontend.yaml
 
-            kubectl set image deployment/backend-deployment \
-              backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
-            kubectl set image deployment/frontend-deployment \
-              frontend=$DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
-          '''
+                kubectl set image deployment/backend-deployment \
+                  backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
+                kubectl set image deployment/frontend-deployment \
+                  frontend=$DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
+              '''
+            } else {
+              bat '''
+                @echo off
+                echo %DOCKERHUB_PASS% | docker login -u "%DOCKERHUB_USER%" --password-stdin
+
+                docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% backend
+                docker build -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% frontend
+
+                docker push %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+                docker push %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+
+                kubectl apply -f k8s/backend.yaml
+                kubectl apply -f k8s/frontend.yaml
+
+                kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+                kubectl set image deployment/frontend-deployment frontend=%DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+              '''
+            }
+          }
         }
       }
     }
@@ -52,7 +73,13 @@ pipeline {
 
   post {
     always {
-      sh "docker logout || true"
+      script {
+        if (isUnix()) {
+          sh "docker logout || true"
+        } else {
+          bat "docker logout || exit /b 0"
+        }
+      }
     }
   }
 }
