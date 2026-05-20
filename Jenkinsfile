@@ -58,24 +58,32 @@ pipeline {
               '''
             } else {
               bat '''
-                @echo off
-                echo %DOCKERHUB_PASS% | docker login -u "%DOCKERHUB_USER%" --password-stdin
+@echo off
 
-                docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% backend
-                docker build -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% frontend
+echo %DOCKERHUB_PASS% | docker login -u "%DOCKERHUB_USER%" --password-stdin
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-                docker push %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
-                docker push %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% backend
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-                kubectl apply -f k8s/backend.yaml
-                kubectl apply -f k8s/frontend.yaml
-                kubectl apply -f "%K8S_SECRET_FILE%"
+docker build -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% frontend
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-                kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
-                kubectl set image deployment/frontend-deployment frontend=%DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+docker push %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+if %errorlevel% neq 0 exit /b %errorlevel%
 
-                
-              '''
+docker push %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+kubectl apply -f k8s/backend.yaml
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+kubectl apply -f k8s/frontend.yaml
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+kubectl apply -f "%K8S_SECRET_FILE%"
+if %errorlevel% neq 0 exit /b %errorlevel%
+'''
             }
           }
         }
