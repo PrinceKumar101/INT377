@@ -15,7 +15,11 @@ pipeline {
   stages {
     stage("Checkout") {
       steps {
-        checkout scm
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[url: 'https://github.com/PrinceKumar101/INT377.git']]
+        ])
       }
     }
 
@@ -26,6 +30,10 @@ pipeline {
             credentialsId: "dockerhub",
             usernameVariable: "DOCKERHUB_USER",
             passwordVariable: "DOCKERHUB_PASS"
+          ),
+          file(
+            credentialsId: "K8s secrect file",
+            variable: "K8S_SECRET_FILE"
           )
         ]) {
           script {
@@ -41,6 +49,7 @@ pipeline {
 
                 kubectl apply -f k8s/backend.yaml
                 kubectl apply -f k8s/frontend.yaml
+                kubectl apply -f "$K8S_SECRET_FILE"
 
                 kubectl set image deployment/backend-deployment \
                   backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
@@ -60,7 +69,10 @@ pipeline {
 
                 kubectl apply -f k8s/backend.yaml
                 kubectl apply -f k8s/frontend.yaml
-                kubectl apply -f %K8s secrect file%
+                kubectl apply -f "%K8S_SECRET_FILE%"
+
+                kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+                kubectl set image deployment/frontend-deployment frontend=%DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
 
                 
               '''
@@ -74,10 +86,12 @@ pipeline {
   post {
     always {
       script {
-        if (isUnix()) {
-          sh "docker logout || true"
-        } else {
-          bat "docker logout || exit /b 0"
+        if (env.NODE_NAME) {
+          if (isUnix()) {
+            sh "docker logout || true"
+          } else {
+            bat "docker logout || exit /b 0"
+          }
         }
       }
     }
