@@ -60,7 +60,8 @@ pipeline {
               bat '''
 @echo off
 
-echo %DOCKERHUB_PASS% | docker login -u "%DOCKERHUB_USER%" --password-stdin
+docker logout >nul 2>&1
+powershell -NoProfile -Command "$env:DOCKERHUB_PASS | docker login -u $env:DOCKERHUB_USER --password-stdin"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% backend
