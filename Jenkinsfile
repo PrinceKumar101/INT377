@@ -39,6 +39,7 @@ pipeline {
           script {
             if (isUnix()) {
               sh '''
+                IMAGE_TAG=$(git rev-parse --short HEAD)
                 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
@@ -61,6 +62,8 @@ docker logout >nul 2>&1
 powershell -NoProfile -Command "$env:DOCKERHUB_PASS | docker login -u $env:DOCKERHUB_USER --password-stdin"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+for /f %%i in ('git rev-parse --short HEAD') do set IMAGE_TAG=%%i
+
 docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% --push backend
 if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -74,6 +77,12 @@ kubectl apply -f k8s/frontend.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 kubectl apply -f "%K8S_SECRET_FILE%"
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
+if %errorlevel% neq 0 exit /b %errorlevel%
+
+kubectl set image deployment/frontend-deployment frontend=%DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
 if %errorlevel% neq 0 exit /b %errorlevel%
 '''
             }
