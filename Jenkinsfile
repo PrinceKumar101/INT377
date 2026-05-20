@@ -28,7 +28,7 @@ pipeline {
             passwordVariable: "DOCKERHUB_PASS"
           )
         ]) {
-          sh """
+          sh '''
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
             docker build -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG backend
@@ -44,7 +44,7 @@ pipeline {
               backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
             kubectl set image deployment/frontend-deployment \
               frontend=$DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
-          """
+          '''
         }
       }
     }
