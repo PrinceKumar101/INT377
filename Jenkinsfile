@@ -41,11 +41,8 @@ pipeline {
               sh '''
                 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
-                docker build -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG backend
-                docker build -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG frontend
-
-                docker push $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
-                docker push $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG
+                docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
+                docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG --push frontend
 
                 kubectl apply -f k8s/backend.yaml
                 kubectl apply -f k8s/frontend.yaml
@@ -64,16 +61,10 @@ docker logout >nul 2>&1
 powershell -NoProfile -Command "$env:DOCKERHUB_PASS | docker login -u $env:DOCKERHUB_USER --password-stdin"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-docker build -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% backend
+docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% --push backend
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-docker build -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% frontend
-if %errorlevel% neq 0 exit /b %errorlevel%
-
-docker push %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
-if %errorlevel% neq 0 exit /b %errorlevel%
-
-docker push %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG%
+docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% --push frontend
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 kubectl apply -f k8s/backend.yaml
