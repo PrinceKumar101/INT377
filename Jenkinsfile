@@ -10,7 +10,8 @@ pipeline {
     BACKEND_IMAGE = "todo-backend"
     FRONTEND_IMAGE = "todo-frontend"
     IMAGE_TAG = "latest"
-  }
+    KUBECONFIG = 'C:\\Users\\Prince\\.kube\\config'
+}
 
   stages {
     stage("Checkout") {
