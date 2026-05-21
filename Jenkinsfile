@@ -41,6 +41,8 @@ pipeline {
 
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG --push frontend
+                
+                bat 'kubectl config current-context'
 
                 kubectl apply --validate=false -f k8s/secrets.yaml
                 kubectl apply --validate=false -f k8s/backend.yaml
