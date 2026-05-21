@@ -42,12 +42,13 @@ pipeline {
                 IMAGE_TAG=$(git rev-parse --short HEAD)
                 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
 
+                export KUBECONFIG="$K8S_SECRET_FILE"
+
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG --push frontend
 
                 kubectl apply -f k8s/backend.yaml
                 kubectl apply -f k8s/frontend.yaml
-                kubectl apply -f "$K8S_SECRET_FILE"
 
                 kubectl set image deployment/backend-deployment \
                   backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
@@ -64,6 +65,8 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 for /f %%i in ('git rev-parse --short HEAD') do set IMAGE_TAG=%%i
 
+set KUBECONFIG=%K8S_SECRET_FILE%
+
 docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% --push backend
 if %errorlevel% neq 0 exit /b %errorlevel%
 
@@ -74,9 +77,6 @@ kubectl apply -f k8s/backend.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 kubectl apply -f k8s/frontend.yaml
-if %errorlevel% neq 0 exit /b %errorlevel%
-
-kubectl apply -f "%K8S_SECRET_FILE%"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
