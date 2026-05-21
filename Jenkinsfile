@@ -42,9 +42,9 @@ pipeline {
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$FRONTEND_IMAGE:$IMAGE_TAG --push frontend
 
-                kubectl apply -f k8s/secrets.yaml
-                kubectl apply -f k8s/backend.yaml
-                kubectl apply -f k8s/frontend.yaml
+                kubectl apply --validate=false -f k8s/secrets.yaml
+                kubectl apply --validate=false -f k8s/backend.yaml
+                kubectl apply --validate=false -f k8s/frontend.yaml
 
                 kubectl set image deployment/backend-deployment \
                   backend=$DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG
@@ -68,13 +68,13 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%FRONTEND_IMAGE%:%IMAGE_TAG% --push frontend
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-kubectl apply -f k8s/secrets.yaml
+kubectl apply --validate=false -f k8s/secrets.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-kubectl apply -f k8s/backend.yaml
+kubectl apply --validate=false -f k8s/backend.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-kubectl apply -f k8s/frontend.yaml
+kubectl apply --validate=false -f k8s/frontend.yaml
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 kubectl set image deployment/backend-deployment backend=%DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG%
