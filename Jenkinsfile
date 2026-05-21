@@ -30,10 +30,6 @@ pipeline {
             credentialsId: "dockerhub",
             usernameVariable: "DOCKERHUB_USER",
             passwordVariable: "DOCKERHUB_PASS"
-          ),
-          file(
-            credentialsId: "K8S_KUBECONFIG",
-            variable: "KUBECONFIG_FILE"
           )
         ]) {
           script {
@@ -41,8 +37,6 @@ pipeline {
               sh '''
                 IMAGE_TAG=$(git rev-parse --short HEAD)
                 echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-
-                export KUBECONFIG="$KUBECONFIG_FILE"
 
 
                 docker buildx build --platform linux/amd64 -t $DOCKERHUB_USER/$BACKEND_IMAGE:$IMAGE_TAG --push backend
@@ -66,8 +60,6 @@ powershell -NoProfile -Command "$env:DOCKERHUB_PASS | docker login -u $env:DOCKE
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 for /f %%i in ('git rev-parse --short HEAD') do set IMAGE_TAG=%%i
-
-set KUBECONFIG=%KUBECONFIG_FILE%
 
 
 docker buildx build --platform linux/amd64 -t %DOCKERHUB_USER%/%BACKEND_IMAGE%:%IMAGE_TAG% --push backend
