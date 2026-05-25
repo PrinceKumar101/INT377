@@ -96,7 +96,7 @@ export default function App() {
   return (
     <div className="container">
       <header>
-        <h1>MERN Todo</h1>
+        <h1>MERN Stack Todo</h1>
         <span className={`badge ${health?.status === 'ok' ? 'ok' : 'bad'}`}>
           API: {health ? health.status : '...'}
           {health?.db ? ` · DB: ${health.db}` : ''}
